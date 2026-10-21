@@ -1,17 +1,39 @@
-from scapy.all import srp
+import nmap
 
 
 def scan_ip_net():
     with open('ip_net.lst', 'r', encoding='utf-8') as file:
-        lines = file.readlines()  # Читаем всё содержимое
-        print(lines[1].strip())  # Выводим на экран
-        arp_request = ARP(pdst='192.168.1.255')
-        srp_result = srp(arp_request, timeout=1)
-        devices = [(ip, mac) for _, mac in srp_result if mac is not None]
+        ip_net_list = file.readlines()  # Читаем файла с ip адресами сетей
+
+        for ip_net in ip_net_list: # Передор Ip адресов сетей
+            ip_net_mask = f'{ip_net.strip()}/24'
+            print(f"\nДоступные хосты сети {ip_net_mask.strip()}")
+            hosts = scan_with_nmap(ip_net_mask) # Выполняем сканирование выбранной сети
+            # print(hosts)
+            for h in hosts:
+                print(f"IP: {h['ip']}, Hostname: {h['hostname']}") # Выводим ip доступных адресов
+
+
+
+
+
+def scan_with_nmap(ip_range):
+    nmap_path = [r"C:\Program Files (x86)\Nmap\nmap.exe"]
+    nm = nmap.PortScanner(nmap_search_path=nmap_path)
+    # Аргументы: -sn означает "Ping Scan" (без сканирования портов)
+    nm.scan(hosts=ip_range, arguments='-sn', timeout=0)
+
+    live_hosts = []
+    for host in nm.all_hosts():
+        if nm[host].state() == 'up':
+            hostname = nm[host].hostname()
+            live_hosts.append({'ip': host, 'hostname': hostname})
+
+    return live_hosts
+
 
 def main():
     scan_ip_net()
-    print('Start diploma')
 
 
 main()
