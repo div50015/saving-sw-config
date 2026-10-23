@@ -2,11 +2,20 @@ import nmap
 import pexpect
 
 
-def telnet_kd_and_get_config():
+def telnet_kd_and_put_config():
     telnet_kd=pexpect.spawn('telnet 192.168.1.250')
     telnet_kd.expect('Password:')
     telnet_kd.sendline('admin123')
     telnet_kd.expect('>')
+    '''
+    command copy config to file: 
+    tftp 192.168.1.5 put vrpcfg.cfg 10_10_10_23.cfg
+    copy startup-config tftp://192.168.1.5/10_10_10.25.cfg
+    and
+    server tftp-hpa need to edit file /etc/default/tftpd-hpa - change line:
+    TFTP_OPTIONS="--secure --create" 
+    '''
+
     
 
 def scan_ip_net():
