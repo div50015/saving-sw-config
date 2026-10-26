@@ -2,11 +2,20 @@ import nmap
 import pexpect
 
 
-def telnet_kd_and_put_config():
-    telnet_kd=pexpect.spawn('telnet 192.168.1.250')
-    telnet_kd.expect('Password:')
-    telnet_kd.sendline('admin123')
-    telnet_kd.expect('>')
+USER = 'admin'
+PASSWORD = 'admin123'
+TFTP_SERVER ='192.168.1.5'
+FILE_CONFIG = 'vrpcfg.cfg'
+
+def load_sw_config(ip_sw, user_sw, password_sw, ip_tftp_server, file_sw_config):
+    string_ip_sw = '_'.join(ip_sw.split('.'))
+    # sw_expect = pexpect.spawn(f'telnet {ip_sw}')
+    sw_expect = pexpect.spawn(f"telnet {ip_sw}")
+    sw_expect.expect('Password:')
+    sw_expect.sendline(f'f{password_sw}')
+    sw_expect.expect('>')
+    sw_expect.sendline(f'tftp {ip_tftp_server} put {file_sw_config} {string_ip_sw}.cfg')
+    sw_expect.expect('>')
     '''
     command copy config to file: 
     tftp 192.168.1.5 put vrpcfg.cfg 10_10_10_23.cfg
@@ -18,23 +27,23 @@ def telnet_kd_and_put_config():
 
     
 
-def scan_ip_net():
+def scan_all_net():
     with open('ip_net.lst', 'r', encoding='utf-8') as file:
         ip_net_list = file.readlines()  # Читаем файла с ip адресами сетей
 
         for ip_net in ip_net_list: # Передор Ip адресов сетей
-            ip_net_mask = f'{ip_net.strip()}/24'
-            print(f"\nДоступные хосты сети {ip_net_mask.strip()}")
-            hosts = scan_with_nmap(ip_net_mask) # Выполняем сканирование выбранной сети
+            # ip_net_and_mask = f'{ip_net.strip()}/24'
+            print(f"\nДоступные хосты сети {ip_net.strip()}")
+            hosts = scan_one_net(ip_net.strip()) # Выполняем сканирование выбранной сети
             # print(hosts)
             for h in hosts:
                 print(f"IP: {h['ip']}, Hostname: {h['hostname']}") # Выводим ip доступных адресов
+                load_sw_config(h['ip'], USER, PASSWORD, TFTP_SERVER, FILE_CONFIG)
 
 
 
 
-
-def scan_with_nmap(ip_range):
+def scan_one_net(ip_range):
     nmap_path = [r"C:\Program Files (x86)\Nmap\nmap.exe"]
     nm = nmap.PortScanner(nmap_search_path=nmap_path)
     # Аргументы: -sn означает "Ping Scan" (без сканирования портов)
@@ -50,7 +59,7 @@ def scan_with_nmap(ip_range):
 
 
 def main():
-    scan_ip_net()
+    scan_all_net()
 
 
 main()
