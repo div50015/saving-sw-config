@@ -2,17 +2,18 @@ import nmap
 import pexpect
 
 
-USER = 'admin'
-PASSWORD = 'admin123'
+USER = 'user'
+PASSWORD = 'password'
 TFTP_SERVER ='192.168.1.5'
 FILE_CONFIG = 'vrpcfg.cfg'
 
 def load_sw_config(ip_sw, user_sw, password_sw, ip_tftp_server, file_sw_config):
     string_ip_sw = '_'.join(ip_sw.split('.'))
-    # sw_expect = pexpect.spawn(f'telnet {ip_sw}')
-    sw_expect = pexpect.spawn(f"telnet {ip_sw}")
+    sw_expect = pexpect.spawn(f'telnet {ip_sw}')
+    sw_expect.expect('Username:')
+    sw_expect.sendline(f'{user_sw}')
     sw_expect.expect('Password:')
-    sw_expect.sendline(f'f{password_sw}')
+    sw_expect.sendline(f'{password_sw}')
     sw_expect.expect('>')
     sw_expect.sendline(f'tftp {ip_tftp_server} put {file_sw_config} {string_ip_sw}.cfg')
     sw_expect.expect('>')
@@ -38,14 +39,17 @@ def scan_all_net():
             # print(hosts)
             for h in hosts:
                 print(f"IP: {h['ip']}, Hostname: {h['hostname']}") # Выводим ip доступных адресов
-                load_sw_config(h['ip'], USER, PASSWORD, TFTP_SERVER, FILE_CONFIG)
+                # load_sw_config(h['ip'], USER, PASSWORD, TFTP_SERVER, FILE_CONFIG)
 
 
 
 
 def scan_one_net(ip_range):
-    nmap_path = [r"C:\Program Files (x86)\Nmap\nmap.exe"]
-    nm = nmap.PortScanner(nmap_search_path=nmap_path)
+    # For runing programm in windows
+    # Need also install nmap in windows
+    # nmap_path = [r"C:\Program Files (x86)\Nmap\nmap.exe"]
+    # nm = nmap.PortScanner(nmap_search_path=nmap_path)
+    nm = nmap.PortScanner()
     # Аргументы: -sn означает "Ping Scan" (без сканирования портов)
     nm.scan(hosts=ip_range, arguments='-sn', timeout=0)
 
@@ -63,3 +67,6 @@ def main():
 
 
 main()
+load_sw_config('192.168.1.250', USER, PASSWORD, TFTP_SERVER, FILE_CONFIG,)
+
+
