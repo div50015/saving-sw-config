@@ -9,8 +9,12 @@ def telnet_kd_and_put_config():
     telnet_kd.expect('>')
     '''
     command copy config to file: 
+    Huawei s2326 s2328 s2309 (192.168.1.250 admin admin123)
     tftp 192.168.1.5 put vrpcfg.cfg 10_10_10_23.cfg
+    Eltex mes2308 mes2328 mes2408 mes2428 (192.168.1.251 admin admin)
     copy startup-config tftp://192.168.1.5/10_10_10.25.cfg
+    Qtech qsw2850 qsw2870 qsw3470 qsw3750
+    copy running-config tftp://192.168.1.5/10_10_10.25.cfg 
     and
     server tftp-hpa need to edit file /etc/default/tftpd-hpa - change line:
     TFTP_OPTIONS="--secure --create" 
