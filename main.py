@@ -10,21 +10,28 @@ CONFIG_FILE_NMAE = 'vrpcfg.cfg'
 def load_sw_config(ip, user, password, tftp_server_ip,config_file_name):
     string_ip_sw = '_'.join(ip.split('.'))
     sw_expect = pexpect.spawn(f'telnet {ip}')
-    sw_expect.expect(['Username:','User Name',],timeout=5)
+    telnet = sw_expect.expect(['Username:','User Name', pexpect.TIMEOUT, pexpect.EOF],timeout=5)
+    if telnet in [2,3]:
+        print(f'Telnet {ip} Time Out - {ip} is not SW!!! ')
+        return 1
     sw_expect.sendline(f'{user}')
     sw_expect.expect('Password:')
     sw_expect.sendline(f'{password}')
-    name = sw_expect.expect(['*Q2309','*Q2326','*Q2328','*Q2352','*MES2308','*MES2408','*MES1124', pexpect.TIMEOUT],timeout=5)
+    name = sw_expect.expect(['Q2309>','Q2326>','Q2328>','Q2352>','MES2308#','>MES2408#','MES1124#', pexpect.TIMEOUT],timeout=5)
+    print(f'name = {name}')
+    # name = sw_expect.expect(['Q2309>',])
     if name in [0,1,2,3]:
         sw_expect.sendline(f'tftp {tftp_server_ip} put {config_file_name} {string_ip_sw}.cfg')
-        sw_expect.expect('*>')
+        print(f'The configuration {ip} has been saved!!!')
+        sw_expect.expect('>')
         sw_expect.sendline('quit')
     elif name in [4,5,6]:
-        sw_expect.sendline(f'copy startup-config tftp://{tftp_server_ip}/{string_ip_sw}.cfg')
-        sw_expect.expect('*>')
+        sw_expect.sendline(f'copy startup-config tftp://{tftp_server_ip}/{string_ip_sw}.conf')
+        print(f'The configuration {ip} has been saved!!!')
+        sw_expect.expect('#')
         sw_expect.sendline('exit')
-    elif name == 7:
-        print(f'****** TELNET {ip} TIME_OUT! *********')
+    elif name in [7]:
+        print(f'Connect {ip} Time Out - incorrect user, password or host name !!!')
     sw_expect.close()
     return 0
 
@@ -74,15 +81,16 @@ def scan_one_net(ip_range):
         if nm[host].state() == 'up':
             hostname = nm[host].hostname()
             live_hosts.append({'ip': host, 'hostname': hostname})
-
+            load_sw_config(host, USER, PASSWORD, TFTP_SERVER_IP, CONFIG_FILE_NMAE, )
     return live_hosts
 
 
 def main():
     scan_all_net()
+    pass
 
 
 main()
-load_sw_config('192.168.1.250', USER, PASSWORD, TFTP_SERVER_IP, CONFIG_FILE_NMAE, )
+# load_sw_config('192.168.1.5', USER, PASSWORD, TFTP_SERVER_IP, CONFIG_FILE_NMAE, )
 
 
